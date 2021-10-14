@@ -1,0 +1,47 @@
+version: '2'
+
+services:
+  db:
+    image: mariadb
+    restart: always
+    command: --transaction-isolation=READ-COMMITTED --binlog-format=ROW
+    volumes:
+      - db:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD_FILE=/run/secrets/mysql_root_password.txt
+      - MYSQL_PASSWORD_FILE=/run/secrets/mysql_password.txt
+      - MYSQL_DATABASE_FILE=/run/secrets/mysql_db.txt
+      - MYSQL_USER_FILE=/run/secrets/mysql_user.txt
+
+  app:
+    image: nextcloud
+    restart: always
+    ports:
+      - 8080:80
+    links:
+      - db
+    volumes:
+      - nextcloud:/var/www/html
+    environment:
+      - MYSQL_PASSWORD_FILE=/run/secrets/mysql_password.txt
+      - MYSQL_DATABASE_FILE=/run/secrets/mysql_db.txt
+      - MYSQL_USER_FILE=/run/secrets/mysql_user.txt
+      - MYSQL_HOST=db
+
+volumes:
+  nextcloud:
+  db:
+
+secrets:
+  nextcloud_admin_password:
+    file: /etc/docker/secrets/nextcloud_admin_password.txt
+  nextcloud_admin_user:
+    file: /etc/docker/secrets/nextcloud_admin_user.txt
+  mysql_db:
+    file: /etc/docker/secrets/mysql_db.txt
+  mysql_password:
+    file: /etc/docker/secrets/mysql_password.txt
+  mysql_root_password:
+    file: /etc/docker/secrets/mysql_root_password.txt 
+  mysql_user:
+    file: /etc/docker/secrets/mysql_user.txt
